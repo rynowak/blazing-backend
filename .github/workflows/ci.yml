@@ -1,0 +1,22 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+      
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v1.0.0
+      with:
+        version: 3.1.100
+     
+    - name: dotnet build
+      run: dotnet build blazing-backend.sln -c Release
+      
+    - name: dotnet test
+      run: dotnet test opulence.sln -c Release --no-builds
