@@ -6,8 +6,11 @@ COPY src/BlazingPizza.OrderService/*.csproj ./src/BlazingPizza.OrderService/
 COPY Directory.Build.props ./
 RUN dotnet restore src/BlazingPizza.OrderService
 
+# Copy protos
+COPY ./protos ./protos
+
 # Copy everything else and build
-COPY ./ ./
+COPY ./src/BlazingPizza.OrderService ./src/BlazingPizza.OrderService
 RUN dotnet publish ./src/BlazingPizza.OrderService -c Release -o out
 
 # Build runtime image

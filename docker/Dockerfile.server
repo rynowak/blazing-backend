@@ -2,16 +2,23 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build-env
 WORKDIR /app
 
 # Copy csproj and restore as distinct layers
-COPY src/BlazingComponents/*.csproj ./src/BlazingComponents/
-COPY src/BlazingPizza.Client/*.csproj ./src/BlazingPizza.Client/
-COPY src/BlazingPizza.ComponentsLibrary/*.csproj ./src/BlazingPizza.ComponentsLibrary/
-COPY src/BlazingPizza.Server/*.csproj ./src/BlazingPizza.Server/
-COPY src/BlazingPizza.Shared/*.csproj ./src/BlazingPizza.Shared/
-COPY Directory.Build.props ./
+COPY ./src/BlazingComponents/*.csproj ./src/BlazingComponents/
+COPY ./src/BlazingPizza.Client/*.csproj ./src/BlazingPizza.Client/
+COPY ./src/BlazingPizza.ComponentsLibrary/*.csproj ./src/BlazingPizza.ComponentsLibrary/
+COPY ./src/BlazingPizza.Server/*.csproj ./src/BlazingPizza.Server/
+COPY ./src/BlazingPizza.Shared/*.csproj ./src/BlazingPizza.Shared/
+COPY ./Directory.Build.props ./
 RUN dotnet restore src/BlazingPizza.Server
 
+# Copy protos
+COPY ./protos ./protos
+
 # Copy everything else and build
-COPY ./ ./
+COPY ./src/BlazingComponents/ ./src/BlazingComponents/
+COPY ./src/BlazingPizza.Client/ ./src/BlazingPizza.Client/
+COPY ./src/BlazingPizza.ComponentsLibrary/ ./src/BlazingPizza.ComponentsLibrary/
+COPY ./src/BlazingPizza.Server/ ./src/BlazingPizza.Server/
+COPY ./src/BlazingPizza.Shared/ ./src/BlazingPizza.Shared/
 RUN dotnet publish ./src/BlazingPizza.Server -c Release -o out
 
 # Build runtime image

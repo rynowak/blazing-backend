@@ -6,8 +6,11 @@ COPY src/BlazingPizza.MenuService/*.csproj ./src/BlazingPizza.MenuService/
 COPY Directory.Build.props ./
 RUN dotnet restore src/BlazingPizza.MenuService
 
+# Copy protos
+COPY ./protos ./protos
+
 # Copy everything else and build
-COPY ./ ./
+COPY ./src/BlazingPizza.MenuService ./src/BlazingPizza.MenuService
 RUN dotnet publish ./src/BlazingPizza.MenuService -c Release -o out
 
 # Build runtime image

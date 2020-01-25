@@ -6,7 +6,8 @@ services:
       dockerfile: ./docker/Dockerfile.server
     ports:
     - "64589:80"
-    depends_on: 
+    depends_on:
+      - delivery
       - menu
       - orders
     environment: 
@@ -14,6 +15,15 @@ services:
       DATA__DIRECTORY: /var/lib/db
     volumes:
       - data-volume:/var/lib/db
+  delivery:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.delivery
+    environment: 
+      ASPNETCORE_ENVIRONMENT: Development
+      REDIS__SERVICE: "redis:6379" 
+    depends_on:
+      - redis
   menu:
     build:
       context: .
