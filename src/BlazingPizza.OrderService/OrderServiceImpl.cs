@@ -1,17 +1,28 @@
 using System;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 
 namespace BlazingPizza.OrderService
 {
     public class OrderServiceImpl : OrderService.OrderServiceBase
     {
-        private readonly PizzaStoreContext db;
 
-        public OrderServiceImpl(PizzaStoreContext db)
+        private static readonly JsonSerializerOptions options = new JsonSerializerOptions()
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
+
+        private readonly PizzaStoreContext db;
+        private readonly ConnectionMultiplexer multiplexer;
+
+        public OrderServiceImpl(PizzaStoreContext db, ConnectionMultiplexer multiplexer)
         {
             this.db = db;
+            this.multiplexer = multiplexer;
         }
 
         public async override Task<OrderHistoryReply> GetOrderHistory(OrderHistoryRequest request, Grpc.Core.ServerCallContext context)
@@ -102,6 +113,12 @@ namespace BlazingPizza.OrderService
 
             db.Orders.Attach(order);
             await db.SaveChangesAsync();
+
+            var database = multiplexer.GetDatabase();
+            await database.ListRightPushAsync("orders", JsonSerializer.Serialize(order, options));
+
+            var subscriber = multiplexer.GetSubscriber();
+            await subscriber.PublishAsync("neworder", "");
 
             return new PlaceOrderReply() { Id = order.OrderId, };
         }

@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using StackExchange.Redis;
 
 namespace BlazingPizza.OrderService
 {
@@ -23,6 +24,9 @@ namespace BlazingPizza.OrderService
         
         public void ConfigureServices(IServiceCollection services)
         {
+            var multiplexer = ConnectionMultiplexer.Connect(Configuration["Redis:Service"]);
+            services.AddSingleton<ConnectionMultiplexer>(multiplexer);
+
             services.AddGrpc();
             services.AddDbContext<PizzaStoreContext>(options => 
             {

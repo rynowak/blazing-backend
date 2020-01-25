@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using BlazingPizza.ComponentsLibrary.Map;
 using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,13 +18,15 @@ namespace BlazingPizza.Server
     [Authorize]
     public class OrdersController : Controller
     {
-        private readonly PizzaStoreContext _db;
+        private readonly PizzaStoreContext db;
+        private readonly DeliveryService.DeliveryService.DeliveryServiceClient delivery;
         private readonly OrderService.OrderService.OrderServiceClient orders;
 
-        public OrdersController(PizzaStoreContext db, OrderService.OrderService.OrderServiceClient orders)
+        public OrdersController(PizzaStoreContext db, OrderService.OrderService.OrderServiceClient orders, DeliveryService.DeliveryService.DeliveryServiceClient delivery)
         {
-            _db = db;
+            this.db = db;
             this.orders = orders;
+            this.delivery = delivery;
         }
 
         [HttpGet]
@@ -51,7 +54,17 @@ namespace BlazingPizza.Server
                 return NotFound();
             }
 
-            return OrderWithStatus.FromOrder(FromGrpc(reply.Order));
+            var status = await delivery.GetDeliveryStatusAsync(new DeliveryService.DeliveryRequest()
+            {
+                OrderId = orderId,
+                UserId = GetUserId(),
+            });
+
+            return OrderWithStatus.FromOrder(FromGrpc(reply.Order), status.Status, new LatLong()
+            {
+                Latitude = status.Location?.Latitude ?? 0,
+                Longitude = status.Location?.Longitude ?? 0,
+            });
         }
 
         [HttpPost]
@@ -66,10 +79,10 @@ namespace BlazingPizza.Server
             var orderId = reply.Id;
 
             // In the background, send push notifications if possible
-            var subscription = await _db.NotificationSubscriptions.Where(e => e.UserId == GetUserId()).SingleOrDefaultAsync();
+            var subscription = await db.NotificationSubscriptions.Where(e => e.UserId == GetUserId()).SingleOrDefaultAsync();
             if (subscription != null)
             {
-                _ = TrackAndSendNotificationsAsync(orderId, subscription);
+                _ = TrackAndSendNotificationsAsync(orderId, GetUserId(), subscription);
             }
 
             return orderId;
@@ -81,16 +94,29 @@ namespace BlazingPizza.Server
             return HttpContext.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
         }
 
-        private static async Task TrackAndSendNotificationsAsync(int orderId, NotificationSubscription subscription)
+        private async Task TrackAndSendNotificationsAsync(int orderId, string userId, NotificationSubscription subscription)
         {
-            // In a realistic case, some other backend process would track
-            // order delivery progress and send us notifications when it
-            // changes. Since we don't have any such process here, fake it.
-            await Task.Delay(OrderWithStatus.PreparationDuration);
-            await SendNotificationAsync(orderId, subscription, "Your order has been dispatched!");
+            var call = delivery.TrackDelivery(new DeliveryService.DeliveryRequest()
+            {
+                OrderId = orderId,
+                UserId = userId,
+            });
 
-            await Task.Delay(OrderWithStatus.DeliveryDuration);
-            await SendNotificationAsync(orderId, subscription, "Your order is now delivered. Enjoy!");
+            var current = "Preparing"; 
+            await foreach (var status in call.ResponseStream.ReadAllAsync())
+            {
+                if (current == "Preparing" && (status.Status == "Out for delivery" || status.Status == "Delivered"))
+                {            
+                    await SendNotificationAsync(orderId, subscription, "Your order has been dispatched!");
+                    current = "Out for delivery";
+                }
+
+                if (current == "Out for delivery" && status.Status == "Delivered")
+                {
+                    await SendNotificationAsync(orderId, subscription, "Your order is now delivered. Enjoy!");
+                    break;
+                }
+            }
         }
 
         private static async Task SendNotificationAsync(int orderId, NotificationSubscription subscription, string message)
@@ -124,7 +150,7 @@ namespace BlazingPizza.Server
             {
                 Name = order.DeliveryAddress.Name,
                 Line1 = order.DeliveryAddress.Line1,
-                Line2 = order.DeliveryAddress.Line2,
+                Line2 = order.DeliveryAddress.Line2 ?? "",
                 City = order.DeliveryAddress.City,
                 Region = order.DeliveryAddress.Region,
                 PostalCode = order.DeliveryAddress.PostalCode,

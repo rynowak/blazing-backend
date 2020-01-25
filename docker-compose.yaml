@@ -19,11 +19,11 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.delivery
+    depends_on:
+      - redis
     environment: 
       ASPNETCORE_ENVIRONMENT: Development
       REDIS__SERVICE: "redis:6379" 
-    depends_on:
-      - redis
   menu:
     build:
       context: .
@@ -37,9 +37,12 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.orders
+    depends_on:
+      - redis
     environment: 
       ASPNETCORE_ENVIRONMENT: Development
       DATA__DIRECTORY: /var/lib/db
+      REDIS__SERVICE: "redis:6379" 
     volumes:
       - data-volume:/var/lib/db
   redis:

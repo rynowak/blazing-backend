@@ -15,6 +15,40 @@ namespace BlazingPizza
 
         public List<Marker> MapMarkers { get; set; }
 
+        public static OrderWithStatus FromOrder(Order order, string status, LatLong location)
+        {
+            List<Marker> mapMarkers;
+            if (status == "Preparing")
+            {
+                mapMarkers = new List<Marker>
+                {
+                    ToMapMarker("You", order.DeliveryLocation, showPopup: true)
+                };
+            }
+            else if (status == "Out for delivery")
+            {
+                mapMarkers = new List<Marker>
+                {
+                    ToMapMarker("You", order.DeliveryLocation),
+                    ToMapMarker("Driver", location, showPopup: true),
+                };
+            }
+            else
+            {
+                mapMarkers = new List<Marker>
+                {
+                    ToMapMarker("Delivery location", order.DeliveryLocation, showPopup: true),
+                };
+            }
+
+            return new OrderWithStatus
+            {
+                Order = order,
+                StatusText = status,
+                MapMarkers = mapMarkers,
+            };
+        }
+
         public static OrderWithStatus FromOrder(Order order)
         {
             // To simulate a real backend process, we fake status updates based on the amount

@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
+    <Protobuf Include="../../protos/delivery.proto" GrpcServices="Client" />
     <Protobuf Include="../../protos/menu.proto" GrpcServices="Client" />
     <Protobuf Include="../../protos/orders.proto" GrpcServices="Client" />
   </ItemGroup>

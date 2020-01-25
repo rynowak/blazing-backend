@@ -1,15 +1,22 @@
 syntax = "proto3";
 
+import "latlng.proto";
+
 option csharp_namespace = "BlazingPizza.DeliveryService";
 
 package delivery;
 
 service DeliveryService {
-  rpc TrackDelivery (SpecialRequest) returns (DeliveryReply);
+  rpc GetDeliveryStatus (DeliveryRequest) returns (DeliveryStatus);
+  rpc TrackDelivery (DeliveryRequest) returns (stream DeliveryStatus);
 }
 
 message DeliveryRequest {
+  int32 orderId = 1;
+  string userId = 2;
 }
 
-message DeliveryReply {
+message DeliveryStatus {
+  string status = 1;
+  google.type.LatLng location = 2;
 }

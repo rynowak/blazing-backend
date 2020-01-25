@@ -26,6 +26,17 @@ namespace BlazingPizza.Server
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<DeliveryService.DeliveryService.DeliveryServiceClient>(s =>
+            {
+                var uri = Configuration["Delivery:Service"] ?? "http://delivery";
+                AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+                var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions()
+                {
+                    Credentials = ChannelCredentials.Insecure,
+                });
+                return new DeliveryService.DeliveryService.DeliveryServiceClient(channel);
+            });
+
             services.AddSingleton<MenuService.MenuService.MenuServiceClient>(s =>
             {
                 var uri = Configuration["Menu:Service"] ?? "http://menu";
