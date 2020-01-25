@@ -11,7 +11,7 @@
         </Empty>
         <Item Context="item">
             <div class="col">
-                <h5>@item.Order.CreatedTime.ToLongDateString()</h5>
+                <h5>@item.Order.CreatedTime.LocalDateTime.ToLongDateString()</h5>
                 Items:
                 <strong>@item.Order.Pizzas.Count()</strong>;
                 Total price:

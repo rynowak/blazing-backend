@@ -19,7 +19,7 @@
         <div class="track-order">
             <div class="track-order-title">
                 <h2>
-                    Order placed @orderWithStatus.Order.CreatedTime.ToLongDateString()
+                    Order placed @orderWithStatus.Order.CreatedTime.LocalDateTime.ToLongDateString()
                 </h2>
                 <p class="ml-auto mb-0">
                     Status: <strong>@orderWithStatus.StatusText</strong>

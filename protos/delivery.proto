@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "BlazingPizza.DeliveryService";
+
+package delivery;
+
+service DeliveryService {
+  rpc TrackDelivery (SpecialRequest) returns (DeliveryReply);
+}
+
+message DeliveryRequest {
+}
+
+message DeliveryReply {
+}

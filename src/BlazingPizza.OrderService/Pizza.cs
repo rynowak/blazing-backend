@@ -38,5 +38,14 @@ namespace BlazingPizza
         {
             return GetTotalPrice().ToString("0.00");
         }
+
+        public OrderService.Pizza ToGrpc()
+        {
+            var pizza = new OrderService.Pizza();
+            pizza.Special = Special.ToGrpc();
+            pizza.Size = Size;
+            pizza.Toppings.Add(Toppings.Select(t => t.ToGrpc()));
+            return pizza;
+        }
     }
 }

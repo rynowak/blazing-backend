@@ -1,0 +1,39 @@
+syntax = "proto3";
+import "money.proto";
+
+option csharp_namespace = "BlazingPizza.MenuService";
+
+package menu;
+
+service MenuService {
+  rpc GetPizzaSpecials (PizzaSpecialRequest) returns (PizzaSpecialReply);
+  rpc GetToppings (ToppingRequest) returns (ToppingReply);
+}
+
+message PizzaSpecialRequest {
+}
+
+message PizzaSpecialReply {
+    repeated PizzaSpecial specials = 1;
+}
+
+message ToppingRequest {
+}
+
+message ToppingReply {
+    repeated Topping toppings = 1;
+}
+
+message PizzaSpecial {
+    int32 id = 1;
+    string name = 2;
+    google.type.Money basePrice = 3;
+    string description = 4;
+    string imageUrl = 5;
+}
+
+message Topping {
+    int32 id = 1;
+    string name = 2;
+    google.type.Money price = 3;
+}

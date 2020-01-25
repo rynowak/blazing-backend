@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+import "latlng.proto";
+import "money.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "BlazingPizza.OrderService";
+
+package orders;
+
+service OrderService {
+  rpc PlaceOrder (PlaceOrderRequest) returns (PlaceOrderReply);
+  rpc GetOrderHistory (OrderHistoryRequest) returns (OrderHistoryReply);
+  rpc GetOrderDetails (OrderDetailsRequest) returns (OrderDetailsReply);
+}
+
+message PlaceOrderRequest {
+  Order order = 1;
+}
+
+message PlaceOrderReply {
+  int32 id = 1;
+}
+
+message OrderHistoryRequest {
+  string userId = 1;
+}
+
+message OrderHistoryReply {
+  repeated Order orders = 1;
+}
+
+message OrderDetailsRequest {
+  string userId = 1;
+  int32 orderId = 2;
+}
+
+message OrderDetailsReply {
+  Order order = 1;
+}
+
+message Order {
+  int32 id = 1;
+  string userId = 2;
+  google.protobuf.Timestamp createdTime = 3;
+  Address deliveryAddress = 4;
+  google.type.LatLng deliveryLocation = 5;
+  repeated Pizza pizzas = 6;
+}
+
+message Address {
+  string name = 1;
+  string line1 = 2;
+  string line2 = 3;
+  string city = 4;
+  string region = 5;
+  string postalCode = 6;
+}
+
+message Pizza {
+  PizzaSpecial special = 1;
+  int32 size = 2;
+  repeated Topping toppings = 3;
+}
+
+message PizzaSpecial {
+    string name = 1;
+    google.type.Money basePrice = 2;
+    string description = 3;
+    string imageUrl = 4;
+}
+
+message Topping {
+    string name = 1;
+    google.type.Money price = 2;
+}

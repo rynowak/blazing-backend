@@ -1,5 +1,8 @@
+using System;
 using System.Linq;
 using System.Net.Mime;
+using Grpc.Core;
+using Grpc.Net.Client;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -23,10 +26,35 @@ namespace BlazingPizza.Server
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc()
-                .AddNewtonsoftJson();
+            services.AddSingleton<MenuService.MenuService.MenuServiceClient>(s =>
+            {
+                var uri = Configuration["Menu:Service"] ?? "http://menu";
+                AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+                var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions()
+                {
+                    Credentials = ChannelCredentials.Insecure,
+                });
+                return new MenuService.MenuService.MenuServiceClient(channel);
+            });
 
-            services.AddDbContext<PizzaStoreContext>(options => options.UseSqlite("Data Source=pizza.db"));
+            services.AddSingleton<OrderService.OrderService.OrderServiceClient>(s =>
+            {
+                var uri = Configuration["Orders:Service"] ?? "http://orders";
+                AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+                var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions()
+                {
+                    Credentials = ChannelCredentials.Insecure,
+                });
+                return new OrderService.OrderService.OrderServiceClient(channel);
+            });
+
+            services.AddMvc().AddNewtonsoftJson();
+
+            services.AddDbContext<PizzaStoreContext>(options => 
+            {
+                var filePath = Configuration["Data:Directory"] == null ? "store.db" : $"{Configuration["Data:Directory"]}/store.db";
+                options.UseSqlite($"Data Source={filePath}");
+            });
 
             services.AddResponseCompression(options =>
             {

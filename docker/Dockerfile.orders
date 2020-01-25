@@ -1,0 +1,17 @@
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build-env
+WORKDIR /app
+
+# Copy csproj and restore as distinct layers
+COPY src/BlazingPizza.OrderService/*.csproj ./src/BlazingPizza.OrderService/
+COPY Directory.Build.props ./
+RUN dotnet restore src/BlazingPizza.OrderService
+
+# Copy everything else and build
+COPY ./ ./
+RUN dotnet publish ./src/BlazingPizza.OrderService -c Release -o out
+
+# Build runtime image
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
+WORKDIR /app
+COPY --from=build-env /app/out .
+ENTRYPOINT ["dotnet", "BlazingPizza.OrderService.dll"]

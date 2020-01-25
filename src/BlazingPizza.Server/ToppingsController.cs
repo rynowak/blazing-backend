@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlazingPizza.Server
 {
@@ -10,17 +9,28 @@ namespace BlazingPizza.Server
     [ApiController]
     public class ToppingsController : Controller
     {
-        private readonly PizzaStoreContext _db;
+        private readonly MenuService.MenuService.MenuServiceClient menu;
 
-        public ToppingsController(PizzaStoreContext db)
+        public ToppingsController(MenuService.MenuService.MenuServiceClient menu)
         {
-            _db = db;
+            this.menu = menu;
         }
 
         [HttpGet]
         public async Task<ActionResult<List<Topping>>> GetToppings()
         {
-            return await _db.Toppings.OrderBy(t => t.Name).ToListAsync();
+            var reply = await menu.GetToppingsAsync(new MenuService.ToppingRequest());
+            return reply.Toppings.Select(t => FromGrpc(t)).OrderBy(t => t.Name).ToList();
+        }
+
+        private static Topping FromGrpc(MenuService.Topping topping)
+        {
+            return new Topping()
+            {
+                Id = topping.Id,
+                Name = topping.Name,
+                Price = topping.Price.DecimalValue,
+            };
         }
     }
 }

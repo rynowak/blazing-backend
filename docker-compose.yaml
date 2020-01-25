@@ -1,0 +1,38 @@
+version: '3'
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.server
+    ports:
+    - "64589:80"
+    depends_on: 
+      - menu
+      - orders
+    environment: 
+      ASPNETCORE_ENVIRONMENT: Development
+      DATA__DIRECTORY: /var/lib/db
+    volumes:
+      - data-volume:/var/lib/db
+  menu:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.menu
+    environment: 
+      ASPNETCORE_ENVIRONMENT: Development
+      DATA__DIRECTORY: /var/lib/db
+    volumes:
+      - data-volume:/var/lib/db
+  orders:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.orders
+    environment: 
+      ASPNETCORE_ENVIRONMENT: Development
+      DATA__DIRECTORY: /var/lib/db
+    volumes:
+      - data-volume:/var/lib/db
+  redis:
+    image: redis
+volumes:
+  data-volume:

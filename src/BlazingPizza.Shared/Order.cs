@@ -10,7 +10,7 @@ namespace BlazingPizza
 
         public string UserId { get; set; }
 
-        public DateTime CreatedTime { get; set; }
+        public DateTimeOffset CreatedTime { get; set; }
 
         public Address DeliveryAddress { get; set; } = new Address();
 

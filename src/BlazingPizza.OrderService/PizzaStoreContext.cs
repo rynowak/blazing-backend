@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace BlazingPizza.Server
+namespace BlazingPizza
 {
     public class PizzaStoreContext : DbContext
     {
@@ -16,9 +16,6 @@ namespace BlazingPizza.Server
         public DbSet<Order> Orders { get; set; }
 
         public DbSet<Pizza> Pizzas { get; set; }
-
-
-        public DbSet<NotificationSubscription> NotificationSubscriptions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
