@@ -76,19 +76,9 @@ namespace BlazingPizza.Server
             services
                 .AddAuthentication(options =>
                 {
-                    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultScheme = "Test Scheme";
                 })
-                .AddCookie()
-                .AddTwitter(twitterOptions =>
-                {
-                    twitterOptions.ConsumerKey = Configuration["Authentication:Twitter:ConsumerKey"];
-                    twitterOptions.ConsumerSecret = Configuration["Authentication:Twitter:ConsumerSecret"];
-                    twitterOptions.Events.OnRemoteFailure = (context) =>
-                    {
-                        context.HandleResponse();
-                        return context.Response.WriteAsync("<script>window.close();</script>");
-                    };
-                });
+                .AddTestAuth(options => {});
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
