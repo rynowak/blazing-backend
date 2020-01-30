@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -9,6 +10,9 @@ namespace BlazingPizza.Server
     {
         public static void Main(string[] args)
         {
+            Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+            
+            AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
             var host = CreateHostBuilder(args).Build();
 
             // Initialize the database
@@ -25,6 +29,12 @@ namespace BlazingPizza.Server
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.ConfigureKestrel(options =>
+                    {
+                        options.ListenAnyIP(80);
+                        options.ListenAnyIP(8080);
+                    });
+
                     webBuilder.UseStartup<Startup>();
                 });
     }

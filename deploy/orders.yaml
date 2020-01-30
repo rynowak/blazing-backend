@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders
+  labels:
+    app: orders
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orders
+  template:
+    metadata:
+      labels:
+        app: orders
+    spec:
+      containers:
+      - name: orders
+        image: rynowak/blazing_backend-orders:latest
+        ports:
+        - containerPort: 80
+        - containerPort: 8080
+        livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+        volumeMounts:
+        - name: redis-secret
+          mountPath: "/etc/secrets/redis"
+          readOnly: true
+      volumes:
+      - name: redis-secret
+        secret:
+          secretName: redis
+          items:
+            - key: secret
+              path: SERVICE__REDIS
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders
+  labels:
+    app: orders
+spec:
+  selector:
+    app: orders
+  type: ClusterIP
+  ports:
+    - name: web
+      protocol: TCP
+      port: 80
+      targetPort: 80
+    - name: diag
+      protocol: TCP
+      port: 8080
+      targetPort: 8080

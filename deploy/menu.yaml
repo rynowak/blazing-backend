@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: menu
+  labels:
+    app: menu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: menu
+  template:
+    metadata:
+      labels:
+        app: menu
+    spec:
+      containers:
+      - name: menu
+        image: rynowak/blazing_backend-menu:latest
+        ports:
+        - containerPort: 80
+        - containerPort: 8080
+        livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: menu
+  labels:
+    app: menu
+spec:
+  selector:
+    app: menu
+  type: ClusterIP
+  ports:
+    - name: web
+      protocol: TCP
+      port: 80
+      targetPort: 80
+    - name: diag
+      protocol: TCP
+      port: 8080
+      targetPort: 8080

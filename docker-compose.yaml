@@ -4,8 +4,9 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.server
+    image: rynowak/blazing_backend-frontend
     ports:
-    - "64589:80"
+    - "5000:80"
     depends_on:
       - delivery
       - menu
@@ -19,15 +20,29 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.delivery
+    image: rynowak/blazing_backend-delivery
     depends_on:
       - redis
     environment: 
       ASPNETCORE_ENVIRONMENT: Development
-      REDIS__SERVICE: "redis:6379" 
+      SERVICE__REDIS: "redis:6379" 
+  manager:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.manager
+    image: rynowak/blazing_backend-manager
+    ports:
+    - "5005:80"
+    depends_on:
+      - delivery
+      - orders
+    environment: 
+      ASPNETCORE_ENVIRONMENT: Development
   menu:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.menu
+    image: rynowak/blazing_backend-menu
     environment: 
       ASPNETCORE_ENVIRONMENT: Development
       DATA__DIRECTORY: /var/lib/db
@@ -37,15 +52,20 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.orders
+    image: rynowak/blazing_backend-orders
     depends_on:
       - redis
     environment: 
       ASPNETCORE_ENVIRONMENT: Development
       DATA__DIRECTORY: /var/lib/db
-      REDIS__SERVICE: "redis:6379" 
+      SERVICE__REDIS: "redis:6379" 
     volumes:
       - data-volume:/var/lib/db
   redis:
     image: redis
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+    - "9411:9411"
 volumes:
   data-volume:

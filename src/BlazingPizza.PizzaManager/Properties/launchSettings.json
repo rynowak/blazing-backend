@@ -3,8 +3,8 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:17590",
-      "sslPort": 44337
+      "applicationUrl": "http://localhost:13015",
+      "sslPort": 44387
     }
   },
   "profiles": {
@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "BlazingPizza.OrderService": {
+    "BlazingPizza.PizzaManager": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

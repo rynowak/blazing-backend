@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -15,6 +17,8 @@ namespace BlazingPizza.MenuService
     {
         public static void Main(string[] args)
         {
+            Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+            
             var host = CreateHostBuilder(args).Build();
 
             // Initialize the database
@@ -37,7 +41,8 @@ namespace BlazingPizza.MenuService
                 {
                     webBuilder.ConfigureKestrel(options =>
                     {
-                        options.ConfigureEndpointDefaults(o => o.Protocols = HttpProtocols.Http2);
+                        options.ListenAnyIP(80, o => o.Protocols = HttpProtocols.Http2);
+                        options.ListenAnyIP(8080);
                     });
                     webBuilder.UseStartup<Startup>();
                 });

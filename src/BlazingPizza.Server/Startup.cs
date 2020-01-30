@@ -12,10 +12,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry.Trace.Configuration;
+using Prometheus;
 
 namespace BlazingPizza.Server
 {
-    public class Startup
+    public partial class Startup
     {
         public Startup(IConfiguration configuration)
         {
@@ -26,39 +28,21 @@ namespace BlazingPizza.Server
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<DeliveryService.DeliveryService.DeliveryServiceClient>(s =>
+            services.AddOpenTelemetry((TracerBuilder b) =>
             {
-                var uri = Configuration["Delivery:Service"] ?? "http://delivery";
-                AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
-                var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions()
+                b.AddRequestCollector();
+                b.UseZipkin(o => 
                 {
-                    Credentials = ChannelCredentials.Insecure,
+                    o.ServiceName = "frontend"; 
+                    o.Endpoint = new Uri("http://zipkin:9411/api/v2/spans");
                 });
-                return new DeliveryService.DeliveryService.DeliveryServiceClient(channel);
             });
 
-            services.AddSingleton<MenuService.MenuService.MenuServiceClient>(s =>
-            {
-                var uri = Configuration["Menu:Service"] ?? "http://menu";
-                AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
-                var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions()
-                {
-                    Credentials = ChannelCredentials.Insecure,
-                });
-                return new MenuService.MenuService.MenuServiceClient(channel);
-            });
+            RegisterDeliveryGrpcClient(services, Configuration.GetServiceHostname("Delivery", "http://delivery"));
+            RegisterMenuGrpcClient(services, Configuration.GetServiceHostname("Menu", "http://menu"));
+            RegisterOrdersGrpcClient(services, Configuration.GetServiceHostname("Orders", "http://orders"));
 
-            services.AddSingleton<OrderService.OrderService.OrderServiceClient>(s =>
-            {
-                var uri = Configuration["Orders:Service"] ?? "http://orders";
-                AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
-                var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions()
-                {
-                    Credentials = ChannelCredentials.Insecure,
-                });
-                return new OrderService.OrderService.OrderServiceClient(channel);
-            });
-
+            services.AddHealthChecks();
             services.AddMvc().AddNewtonsoftJson();
 
             services.AddDbContext<PizzaStoreContext>(options => 
@@ -95,12 +79,17 @@ namespace BlazingPizza.Server
 
             app.UseRouting();
 
+            app.UseHttpMetrics();
+
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseClientSideBlazorFiles<Client.Startup>();
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapMetrics();
+                endpoints.MapHealthChecks("/healthz");
+                
                 endpoints.MapControllers();
                 endpoints.MapFallbackToClientSideBlazor<Client.Startup>("index.html");
             });

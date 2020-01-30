@@ -9,11 +9,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry.Collector.StackExchangeRedis;
+using OpenTelemetry.Trace.Configuration;
+using Prometheus;
 using StackExchange.Redis;
 
 namespace BlazingPizza.OrderService
 {
-    public class Startup
+    public partial class Startup
     {
         public Startup(IConfiguration configuration)
         {
@@ -24,15 +27,29 @@ namespace BlazingPizza.OrderService
         
         public void ConfigureServices(IServiceCollection services)
         {
-            var multiplexer = ConnectionMultiplexer.Connect(Configuration["Redis:Service"]);
-            services.AddSingleton<ConnectionMultiplexer>(multiplexer);
-
             services.AddGrpc();
-            services.AddDbContext<PizzaStoreContext>(options => 
+            services.AddHealthChecks();
+
+            var connection = ConnectionMultiplexer.Connect(Configuration.GetServiceHostname("Redis"));
+            services.AddSingleton(connection);
+
+            services.AddOpenTelemetry((TracerBuilder b) =>
             {
-                var filePath = Configuration["Data:Directory"] == null ? "orders.db" : $"{Configuration["Data:Directory"]}/orders.db";
-                options.UseSqlite($"Data Source={filePath}");
+                b.AddRequestCollector();
+                b.UseZipkin(o => 
+                {
+                    o.ServiceName = "orders"; 
+                    o.Endpoint = new Uri("http://zipkin:9411/api/v2/spans");
+                });
+                b.AddCollector(t =>
+                {
+                    var collector = new StackExchangeRedisCallsCollector(t);
+                    connection.RegisterProfiler(collector.GetProfilerSessionsFactory());
+                    return collector;
+                });
             });
+
+            ConfigureDatabase(services);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -44,8 +61,13 @@ namespace BlazingPizza.OrderService
 
             app.UseRouting();
 
+            app.UseHttpMetrics();
+
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapMetrics();
+
+                endpoints.MapHealthChecks("/healthz");
                 endpoints.MapGrpcService<OrderServiceImpl>();
             });
         }

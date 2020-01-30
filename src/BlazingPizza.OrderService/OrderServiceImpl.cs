@@ -58,6 +58,21 @@ namespace BlazingPizza.OrderService
         
         public async override Task<PlaceOrderReply> PlaceOrder(PlaceOrderRequest request, Grpc.Core.ServerCallContext context)
         {
+            var order = FromGrpc(request);
+            db.Orders.Attach(order);
+            await db.SaveChangesAsync();
+
+            var database = multiplexer.GetDatabase();
+            await database.ListRightPushAsync("orders", JsonSerializer.Serialize(order, options));
+
+            var subscriber = multiplexer.GetSubscriber();
+            await subscriber.PublishAsync("neworder", "");
+
+            return new PlaceOrderReply() { Id = order.OrderId, };
+        }
+
+        private static BlazingPizza.Order FromGrpc(PlaceOrderRequest request)
+        {
             // Create DB representation from request
             var order = new BlazingPizza.Order();
 
@@ -111,16 +126,7 @@ namespace BlazingPizza.OrderService
                 order.Pizzas.Add(pizza);
             }
 
-            db.Orders.Attach(order);
-            await db.SaveChangesAsync();
-
-            var database = multiplexer.GetDatabase();
-            await database.ListRightPushAsync("orders", JsonSerializer.Serialize(order, options));
-
-            var subscriber = multiplexer.GetSubscriber();
-            await subscriber.PublishAsync("neworder", "");
-
-            return new PlaceOrderReply() { Id = order.OrderId, };
+            return order;
         }
     }
 }

@@ -1,0 +1,97 @@
+﻿@page "/"
+@inject DeliveryService.DeliveryServiceClient Delivery
+@inject OrderService.OrderServiceClient Orders
+@implements IDisposable
+
+<h1>Pizza Manager</h1>
+<h4>Spy on EVERYONE</h4>
+
+<form @onsubmit="OnUserChanged">
+    <input type="text" @bind="user"/>
+    <button>Spy</button>
+</form>
+
+<hr />
+
+@if (orders != null)
+{
+    <select @onchange="OnSelectedOrderChanged">
+        <option>Select an order..</option>
+        @foreach (var order in orders)
+        {
+            <option value="@order.Id">Order: @order.Id</option>
+        }
+    </select>
+}
+
+<ul>
+    @foreach (var message in messages)
+    {
+        <li>@message</li>
+    }
+</ul>
+
+@code {
+    string user;
+    List<BlazingPizza.OrderService.Order> orders;
+    int? order;
+    List<string> messages = new List<string>();
+    AsyncServerStreamingCall<BlazingPizza.DeliveryService.DeliveryStatus> call;
+
+    async Task OnUserChanged()
+    {
+        var reply = await Orders.GetOrderHistoryAsync(new BlazingPizza.OrderService.OrderHistoryRequest()
+        {
+            UserId = user,
+        });
+
+        orders = reply.Orders.OrderByDescending(o => o.CreatedTime).ToList();
+        
+        order = null;
+        call?.Dispose();
+        messages.Clear();
+    }
+
+    async Task OnSelectedOrderChanged(ChangeEventArgs e)
+    {
+        if (!int.TryParse((string)e.Value, out var parsed))
+        {
+            return;
+        }
+
+        order = parsed;
+        call?.Dispose();
+        messages.Clear();
+
+        if (order == null)
+        {
+            return;
+        }
+
+        call = Delivery.TrackDelivery(new BlazingPizza.DeliveryService.DeliveryRequest()
+        {
+            UserId = user,
+            OrderId = order.Value,
+        });
+
+        try
+        {
+            messages.Add("Waiting for updates...");
+            await foreach (var status in call.ResponseStream.ReadAllAsync())
+            {
+                await InvokeAsync(() =>
+                {
+                    messages.Add($"{status.Status} - {status.Location.Latitude}:{status.Location.Longitude}");
+                    StateHasChanged();
+                });
+            }
+        }
+        catch (RpcException)
+        {
+        }
+
+        call = null;
+    }
+
+    void IDisposable.Dispose() => call?.Dispose();
+}

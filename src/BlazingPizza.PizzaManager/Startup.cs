@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Trace.Configuration;
 using Prometheus;
 
-namespace BlazingPizza.MenuService
+namespace BlazingPizza.PizzaManager
 {
     public partial class Startup
     {
@@ -25,9 +25,12 @@ namespace BlazingPizza.MenuService
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddGrpc();
             services.AddHealthChecks();
-            ConfigureDatabase(services);
+            services.AddRazorPages();
+            services.AddServerSideBlazor();
+
+            RegisterDeliveryGrpcClient(services, Configuration.GetServiceHostname("Delivery", "http://delivery"));
+            RegisterOrdersGrpcClient(services, Configuration.GetServiceHostname("Orders", "http://orders"));
 
             services.AddOpenTelemetry((TracerBuilder b) =>
             {
@@ -46,6 +49,12 @@ namespace BlazingPizza.MenuService
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                app.UseExceptionHandler("/Error");
+            }
+
+            app.UseStaticFiles();
 
             app.UseRouting();
 
@@ -55,7 +64,8 @@ namespace BlazingPizza.MenuService
             {
                 endpoints.MapMetrics();
                 endpoints.MapHealthChecks("/healthz");
-                endpoints.MapGrpcService<MenuServiceImpl>();
+                endpoints.MapBlazorHub();
+                endpoints.MapFallbackToPage("/_Host");
             });
         }
     }
