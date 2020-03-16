@@ -29,8 +29,8 @@ namespace BlazingPizza.PizzaManager
             services.AddRazorPages();
             services.AddServerSideBlazor();
 
-            RegisterDeliveryGrpcClient(services, Configuration.GetServiceHostname("Delivery", "http://delivery"));
-            RegisterOrdersGrpcClient(services, Configuration.GetServiceHostname("Orders", "http://orders"));
+            RegisterDeliveryGrpcClient(services, Configuration.GetServiceUri("Delivery", "http://delivery"));
+            RegisterOrdersGrpcClient(services, Configuration.GetServiceUri("Orders", "http://orders"));
 
             services.AddOpenTelemetry((TracerBuilder b) =>
             {
@@ -38,7 +38,7 @@ namespace BlazingPizza.PizzaManager
                 b.UseZipkin(o => 
                 {
                     o.ServiceName = "menu"; 
-                    o.Endpoint = new Uri("http://zipkin:9411/api/v2/spans");
+                    o.Endpoint = new Uri(Configuration.GetServiceUri("zipkin", "http://zipkin"), "/api/v2/spans");
                 });
             });
         }

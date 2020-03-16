@@ -38,7 +38,7 @@ namespace BlazingPizza.DeliveryService
                 b.UseZipkin(o => 
                 {
                     o.ServiceName = "delivery"; 
-                    o.Endpoint = new Uri("http://zipkin:9411/api/v2/spans");
+                    o.Endpoint = new Uri(Configuration.GetServiceUri("zipkin", "http://zipkin"), "/api/v2/spans");
                 });
 
                 b.AddCollector(t =>

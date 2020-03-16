@@ -1,0 +1,26 @@
+# tye application configuration file
+# read all about it at https://github.com/dotnet/tye
+#
+# when you've given us a try, we'd love to know what you think:
+#    https://aka.ms/AA7q20u
+#
+name: blazing-backend
+services:
+- name: frontend
+  project: src/BlazingPizza.Server/BlazingPizza.Server.csproj
+- name: orders
+  project: src/BlazingPizza.OrderService/BlazingPizza.OrderService.csproj
+- name: delivery
+  project: src/BlazingPizza.DeliveryService/BlazingPizza.DeliveryService.csproj
+- name: menu
+  project: src/BlazingPizza.MenuService/BlazingPizza.MenuService.csproj
+- name: manager
+  project: src/BlazingPizza.PizzaManager/BlazingPizza.PizzaManager.csproj
+- name: redis
+  dockerImage: redis
+  bindings:
+  - port: 6379
+- name: zipkin
+  dockerImage: openzipkin/zipkin 
+  bindings:
+  - port: 9411

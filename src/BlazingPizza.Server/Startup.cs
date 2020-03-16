@@ -34,13 +34,13 @@ namespace BlazingPizza.Server
                 b.UseZipkin(o => 
                 {
                     o.ServiceName = "frontend"; 
-                    o.Endpoint = new Uri("http://zipkin:9411/api/v2/spans");
+                    o.Endpoint = new Uri(Configuration.GetServiceUri("zipkin", "http://zipkin"), "/api/v2/spans");
                 });
             });
 
-            RegisterDeliveryGrpcClient(services, Configuration.GetServiceHostname("Delivery", "http://delivery"));
-            RegisterMenuGrpcClient(services, Configuration.GetServiceHostname("Menu", "http://menu"));
-            RegisterOrdersGrpcClient(services, Configuration.GetServiceHostname("Orders", "http://orders"));
+            RegisterDeliveryGrpcClient(services, Configuration.GetServiceUri("Delivery", "http://delivery"));
+            RegisterMenuGrpcClient(services, Configuration.GetServiceUri("Menu", "http://menu"));
+            RegisterOrdersGrpcClient(services, Configuration.GetServiceUri("Orders", "http://orders"));
 
             services.AddHealthChecks();
             services.AddMvc().AddNewtonsoftJson();
