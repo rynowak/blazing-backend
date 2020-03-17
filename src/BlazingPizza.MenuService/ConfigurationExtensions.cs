@@ -7,7 +7,7 @@ namespace BlazingPizza
     {
         public static string GetServiceHostname(this IConfiguration configuration, string name, string @default = default)
         {
-            var connectionString = configuration[$"service:{name}:connectionstring"];
+            var connectionString = configuration[$"connectionstring:{name}"];
             if (!string.IsNullOrEmpty(connectionString))
             {
                 return connectionString;
@@ -32,7 +32,7 @@ namespace BlazingPizza
 
         public static Uri GetServiceUri(this IConfiguration configuration, string name, string @default = default)
         {
-            var connectionString = configuration[$"service:{name}:connectionstring"];
+            var connectionString = configuration[$"connectionstring:{name}"];
             if (!string.IsNullOrEmpty(connectionString))
             {
                 return new Uri(connectionString);

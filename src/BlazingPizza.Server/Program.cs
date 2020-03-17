@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -27,6 +29,17 @@ namespace BlazingPizza.Server
         }
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(config =>
+                {
+                    if (Directory.Exists("/var/tye/bindings/"))
+                    {
+                        foreach (var directory in Directory.GetDirectories("/var/tye/bindings/"))
+                        {
+                            Console.WriteLine($"Adding config in '{directory}'.");
+                            config.AddKeyPerFile(directory, optional: true);
+                        }
+                    }
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
