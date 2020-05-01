@@ -47,8 +47,7 @@ namespace BlazingPizza.Server
 
             services.AddDbContext<PizzaStoreContext>(options => 
             {
-                var filePath = Configuration["Data:Directory"] == null ? "store.db" : $"{Configuration["Data:Directory"]}/store.db";
-                options.UseSqlite($"Data Source={filePath}");
+                options.UseSqlServer(Configuration.GetConnectionString("PizzaDatabase"));
             });
 
             services.AddResponseCompression(options =>

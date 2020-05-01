@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(EntityFrameworkVersion)" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(EntityFrameworkVersion)" />
     <PackageReference Include="OpenTelemetry.Collector.AspNetCore" Version="0.2.0-alpha.100" />
     <PackageReference Include="OpenTelemetry.Hosting" Version="0.2.0-alpha.100" />
     <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="0.2.0-alpha.100" />
