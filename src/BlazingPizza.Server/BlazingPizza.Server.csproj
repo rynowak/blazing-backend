@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Tye.Extensions.Configuration" Version="0.1.0-*" />
     <PackageReference Include="OpenTelemetry.Collector.AspNetCore" Version="0.2.0-alpha.179" />
     <PackageReference Include="OpenTelemetry.Hosting" Version="0.2.0-alpha.179" />
     <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="0.2.0-alpha.179" />
@@ -26,7 +27,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Blazor.Server" Version="$(BlazorVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="$(AspNetCoreVersion)" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(EntityFrameworkVersion)" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(EntityFrameworkVersion)" />
     <PackageReference Include="WebPush" Version="1.0.11" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="3.4.0" />
   </ItemGroup>

@@ -38,17 +38,16 @@ namespace BlazingPizza.Server
                 });
             });
 
-            RegisterDeliveryGrpcClient(services, Configuration.GetServiceHostname("Delivery", "http://delivery"));
-            RegisterMenuGrpcClient(services, Configuration.GetServiceHostname("Menu", "http://menu"));
-            RegisterOrdersGrpcClient(services, Configuration.GetServiceHostname("Orders", "http://orders"));
+            RegisterDeliveryGrpcClient(services, Configuration.GetServiceUri("delivery"));
+            RegisterMenuGrpcClient(services, Configuration.GetServiceUri("menu"));
+            RegisterOrdersGrpcClient(services, Configuration.GetServiceUri("orders"));
 
             services.AddHealthChecks();
             services.AddMvc().AddNewtonsoftJson();
 
             services.AddDbContext<PizzaStoreContext>(options => 
             {
-                var filePath = Configuration["Data:Directory"] == null ? "store.db" : $"{Configuration["Data:Directory"]}/store.db";
-                options.UseSqlite($"Data Source={filePath}");
+                options.UseSqlServer(Configuration.GetConnectionString("PizzaDatabase"), c => c.EnableRetryOnFailure(30));
             });
 
             services.AddResponseCompression(options =>

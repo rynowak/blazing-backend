@@ -21,16 +21,18 @@ namespace BlazingPizza.MenuService
             
             var host = CreateHostBuilder(args).Build();
 
+
             // Initialize the database
-            var scopeFactory = host.Services.GetRequiredService<IServiceScopeFactory>();
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<PizzaStoreContext>();
-                if (db.Database.EnsureCreated())
-                {
-                    SeedData.Initialize(db);
-                }
-            }
+            // var scopeFactory = host.Services.GetRequiredService<IServiceScopeFactory>();
+            // using (var scope = scopeFactory.CreateScope())
+            // {
+            //     var db = scope.ServiceProvider.GetRequiredService<PizzaStoreContext>();
+
+            //     if (db.Database.EnsureCreated())
+            //     {
+            //         SeedData.Initialize(db);
+            //     }
+            // }
 
             host.Run();
         }
@@ -39,10 +41,15 @@ namespace BlazingPizza.MenuService
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.ConfigureKestrel(options =>
+                    webBuilder.ConfigureKestrel((context, options) => 
                     {
-                        options.ListenAnyIP(80, o => o.Protocols = HttpProtocols.Http2);
-                        options.ListenAnyIP(8080);
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                        {
+                            var urls = context.Configuration["urls"];
+                            urls = string.Join(";", urls.Split(';').Where(u => !u.StartsWith("https:")));
+                            context.Configuration["urls"] = urls;
+                        }
+                        options.ConfigureEndpointDefaults(o => o.Protocols = HttpProtocols.Http2);
                     });
                     webBuilder.UseStartup<Startup>();
                 });

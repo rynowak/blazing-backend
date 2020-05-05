@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BlazingPizza.OrderService
@@ -9,8 +10,7 @@ namespace BlazingPizza.OrderService
         {
             services.AddDbContext<PizzaStoreContext>(options => 
             {
-                var filePath = Configuration["Data:Directory"] == null ? "orders.db" : $"{Configuration["Data:Directory"]}/orders.db";
-                options.UseSqlite($"Data Source={filePath}");
+                options.UseSqlServer(Configuration.GetConnectionString("OrdersDatabase"), c => c.EnableRetryOnFailure(30));
             });
         }
     }

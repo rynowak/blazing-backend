@@ -7,7 +7,7 @@ namespace BlazingPizza.Server
 {
     public partial class Startup
     {
-        private void RegisterDeliveryGrpcClient(IServiceCollection services, string uri)
+        private void RegisterDeliveryGrpcClient(IServiceCollection services, Uri uri)
         {
             services.AddSingleton<DeliveryService.DeliveryService.DeliveryServiceClient>(s =>
             {
@@ -21,7 +21,7 @@ namespace BlazingPizza.Server
             });
         }
 
-        private void RegisterMenuGrpcClient(IServiceCollection services, string uri)
+        private void RegisterMenuGrpcClient(IServiceCollection services, Uri uri)
         {
             services.AddSingleton<MenuService.MenuService.MenuServiceClient>(s =>
             {
@@ -34,7 +34,7 @@ namespace BlazingPizza.Server
             });
         }
 
-        private void RegisterOrdersGrpcClient(IServiceCollection services, string uri)
+        private void RegisterOrdersGrpcClient(IServiceCollection services, Uri uri)
         {
             services.AddSingleton<OrderService.OrderService.OrderServiceClient>(s =>
             {

@@ -11,6 +11,7 @@ using OpenTelemetry.Collector.StackExchangeRedis;
 using OpenTelemetry.Trace.Configuration;
 using StackExchange.Redis;
 using Prometheus;
+using Microsoft.Extensions.Logging;
 
 namespace BlazingPizza.DeliveryService
 {
@@ -22,15 +23,23 @@ namespace BlazingPizza.DeliveryService
         }
 
         public IConfiguration Configuration { get; }
-        
+
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc();
             services.AddHealthChecks();
             services.AddHostedService<PizzaMaker>();
 
-            var connection = ConnectionMultiplexer.Connect(Configuration.GetServiceHostname("Redis"));
-            services.AddSingleton(connection);
+            ConnectionMultiplexer connection = null;
+            while(connection is null)
+            {
+                try
+                {
+                    connection = ConnectionMultiplexer.Connect(Configuration.GetConnectionString("redis"));
+                    services.AddSingleton<ConnectionMultiplexer>(connection);
+                }
+                catch(Exception) {}
+            }
 
             services.AddOpenTelemetry((TracerBuilder b) =>
             {

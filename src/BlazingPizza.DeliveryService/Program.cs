@@ -30,11 +30,17 @@ namespace BlazingPizza.DeliveryService
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.ConfigureKestrel(options =>
+                    webBuilder.ConfigureKestrel((context, options) => 
                     {
-                        options.ListenAnyIP(80, o => o.Protocols = HttpProtocols.Http2);
-                        options.ListenAnyIP(8080);
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                        {
+                            var urls = context.Configuration["urls"];
+                            urls = string.Join(";", urls.Split(';').Where(u => !u.StartsWith("https:")));
+                            context.Configuration["urls"] = urls;
+                        }
+                        options.ConfigureEndpointDefaults(o => o.Protocols = HttpProtocols.Http2);
                     });
+                    
                     webBuilder.UseStartup<Startup>();
                 });
     }
