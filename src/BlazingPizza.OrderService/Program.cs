@@ -40,7 +40,16 @@ namespace BlazingPizza.OrderService
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.ConfigureKestrel(options => options.ConfigureEndpointDefaults(o => o.Protocols = HttpProtocols.Http2 ));
+                    webBuilder.ConfigureKestrel((context, options) => 
+                    {
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                        {
+                            var urls = context.Configuration["urls"];
+                            urls = string.Join(";", urls.Split(';').Where(u => !u.StartsWith("https:")));
+                            context.Configuration["urls"] = urls;
+                        }
+                        options.ConfigureEndpointDefaults(o => o.Protocols = HttpProtocols.Http2);
+                    });
                     webBuilder.UseStartup<Startup>();
                 });
     }
