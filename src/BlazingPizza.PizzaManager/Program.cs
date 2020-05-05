@@ -27,12 +27,6 @@ namespace BlazingPizza.PizzaManager
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.ConfigureKestrel(options =>
-                    {
-                        options.ListenAnyIP(80);
-                        options.ListenAnyIP(8080);
-                    });
-
                     webBuilder.UseStartup<Startup>();
                 });
     }

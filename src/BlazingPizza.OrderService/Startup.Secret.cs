@@ -10,7 +10,7 @@ namespace BlazingPizza.OrderService
         {
             services.AddDbContext<PizzaStoreContext>(options => 
             {
-                options.UseSqlServer(Configuration.GetConnectionString("OrdersDatabase"));
+                options.UseSqlServer(Configuration.GetConnectionString("OrdersDatabase"), c => c.EnableRetryOnFailure(30));
             });
         }
     }

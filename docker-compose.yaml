@@ -8,12 +8,15 @@ services:
     ports:
     - "5000:80"
     depends_on:
+      - sql
       - delivery
       - menu
       - orders
+    entrypoint: ["./wait-for-it.sh", "sql:1433","-t", "120", "--", "dotnet", "BlazingPizza.Server.dll"]
     environment: 
       ASPNETCORE_ENVIRONMENT: Development
       DATA__DIRECTORY: /var/lib/db
+      ConnectionStrings__PizzaDatabase: "Server=sql;Initial Catalog=pizza;User Id=sa;Password=yourStrong(!)Password;"
     volumes:
       - data-volume:/var/lib/db
   delivery:
@@ -46,6 +49,10 @@ services:
     environment: 
       ASPNETCORE_ENVIRONMENT: Development
       DATA__DIRECTORY: /var/lib/db
+      ConnectionStrings__MenuDatabase: "Server=sql;Initial Catalog=menu;User Id=sa;Password=yourStrong(!)Password;"
+    depends_on: 
+      - sql
+    entrypoint: ["./wait-for-it.sh", "sql:1433","-t", "120", "--", "dotnet", "BlazingPizza.MenuService.dll"]
     volumes:
       - data-volume:/var/lib/db
   orders:
@@ -55,12 +62,15 @@ services:
     image: rynowak/blazing_backend-orders
     depends_on:
       - redis
+      - sql
     environment: 
       ASPNETCORE_ENVIRONMENT: Development
       DATA__DIRECTORY: /var/lib/db
-      SERVICE__REDIS: "redis:6379" 
+      SERVICE__REDIS: "redis:6379"
+      ConnectionStrings__OrdersDatabase: "Server=sql;Initial Catalog=orders;User Id=sa;Password=yourStrong(!)Password;"
     volumes:
-      - data-volume:/var/lib/db
+      - data-volume:/var/lib/db,
+    entrypoint: ["./wait-for-it.sh", "sql:1433","-t", "120", "--", "dotnet", "BlazingPizza.OrderService.dll"]
   redis:
     image: redis
   zipkin:

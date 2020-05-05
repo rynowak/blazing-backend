@@ -1,0 +1,60 @@
+# tye application configuration file
+# read all about it at https://github.com/dotnet/tye
+#
+# when you've given us a try, we'd love to know what you think:
+#    https://aka.ms/AA7q20u
+#
+name: blazing-backend
+ingress:
+  - name: ingress
+    bindings:
+      - port: 8080
+    rules:
+      - path: /
+        service: frontend
+services:
+- name: frontend
+  project: src/BlazingPizza.Server/BlazingPizza.Server.csproj
+- name: orders
+  project: src/BlazingPizza.OrderService/BlazingPizza.OrderService.csproj
+- name: delivery
+  project: src/BlazingPizza.DeliveryService/BlazingPizza.DeliveryService.csproj
+- name: menu
+  project: src/BlazingPizza.MenuService/BlazingPizza.MenuService.csproj
+- name: pizzamanager
+  project: src/BlazingPizza.PizzaManager/BlazingPizza.PizzaManager.csproj
+- name: MenuDatabase
+  image: glennc/menudatabase
+  env:
+  - name: SA_PASSWORD
+    value: "Pass@word1"
+  - name: ACCEPT_EULA
+    value: "Y"
+  bindings:
+  - containerPort: 1433
+    connectionString: Server=${host},${port};Database=menu;User Id=sa;Password=${env:sa_password};MultipleActiveResultSets=True
+- name: OrdersDatabase
+  image: glennc/ordersdatabase
+  env:
+  - name: SA_PASSWORD
+    value: "Pass@word1"
+  - name: ACCEPT_EULA
+    value: "Y"
+  bindings:
+  - containerPort: 1433
+    connectionString: Server=${host},${port};Database=orders;User Id=sa;Password=${env:sa_password};MultipleActiveResultSets=True
+- name: PizzaDatabase
+  image: glennc/pizzadatabase
+  env:
+  - name: SA_PASSWORD
+    value: "Pass@word1"
+  - name: ACCEPT_EULA
+    value: "Y"
+  bindings:
+  - containerPort: 1433
+    connectionString: Server=${host},${port};Database=pizza;User Id=sa;Password=${env:sa_password};MultipleActiveResultSets=True
+- name: redis
+  image: redis
+  bindings:
+  - containerPort: 6379
+    connectionString: ${host}:${port}

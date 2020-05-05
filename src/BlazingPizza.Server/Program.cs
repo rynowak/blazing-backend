@@ -16,12 +16,12 @@ namespace BlazingPizza.Server
             var host = CreateHostBuilder(args).Build();
 
             // Initialize the database
-            var scopeFactory = host.Services.GetRequiredService<IServiceScopeFactory>();
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<PizzaStoreContext>();
-                db.Database.EnsureCreated();
-            }
+            // var scopeFactory = host.Services.GetRequiredService<IServiceScopeFactory>();
+            // using (var scope = scopeFactory.CreateScope())
+            // {
+            //     var db = scope.ServiceProvider.GetRequiredService<PizzaStoreContext>();
+            //     db.Database.EnsureCreated();
+            // }
 
             host.Run();
         }
@@ -29,12 +29,6 @@ namespace BlazingPizza.Server
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.ConfigureKestrel(options =>
-                    {
-                        options.ListenAnyIP(80);
-                        options.ListenAnyIP(8080);
-                    });
-
                     webBuilder.UseStartup<Startup>();
                 });
     }

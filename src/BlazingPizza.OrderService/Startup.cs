@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry.Collector.StackExchangeRedis;
 using OpenTelemetry.Trace.Configuration;
 using Prometheus;
@@ -24,14 +25,24 @@ namespace BlazingPizza.OrderService
         }
 
         public IConfiguration Configuration { get; }
-        
+
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc();
             services.AddHealthChecks();
 
-            var connection = ConnectionMultiplexer.Connect(Configuration.GetServiceHostname("Redis"));
-            services.AddSingleton(connection);
+            ConnectionMultiplexer connection = null;
+            while(connection is null)
+            {
+                try
+                {
+                    connection = ConnectionMultiplexer.Connect(Configuration.GetConnectionString("redis"));
+                    services.AddSingleton<ConnectionMultiplexer>(connection);
+                }
+                catch(Exception)
+                {
+                }
+            }
 
             services.AddOpenTelemetry((TracerBuilder b) =>
             {
