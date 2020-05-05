@@ -1,18 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using OpenTelemetry.Collector.StackExchangeRedis;
-using OpenTelemetry.Trace.Configuration;
-using Prometheus;
 using StackExchange.Redis;
 
 namespace BlazingPizza.OrderService
@@ -44,22 +35,6 @@ namespace BlazingPizza.OrderService
                 }
             }
 
-            services.AddOpenTelemetry((TracerBuilder b) =>
-            {
-                b.AddRequestCollector();
-                b.UseZipkin(o => 
-                {
-                    o.ServiceName = "orders"; 
-                    o.Endpoint = new Uri("http://zipkin:9411/api/v2/spans");
-                });
-                b.AddCollector(t =>
-                {
-                    var collector = new StackExchangeRedisCallsCollector(t);
-                    connection.RegisterProfiler(collector.GetProfilerSessionsFactory());
-                    return collector;
-                });
-            });
-
             ConfigureDatabase(services);
         }
 
@@ -72,12 +47,8 @@ namespace BlazingPizza.OrderService
 
             app.UseRouting();
 
-            app.UseHttpMetrics();
-
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapMetrics();
-
                 endpoints.MapHealthChecks("/healthz");
                 endpoints.MapGrpcService<OrderServiceImpl>();
             });

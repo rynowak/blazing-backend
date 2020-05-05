@@ -7,11 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OpenTelemetry.Collector.StackExchangeRedis;
-using OpenTelemetry.Trace.Configuration;
 using StackExchange.Redis;
-using Prometheus;
-using Microsoft.Extensions.Logging;
 
 namespace BlazingPizza.DeliveryService
 {
@@ -31,7 +27,7 @@ namespace BlazingPizza.DeliveryService
             services.AddHostedService<PizzaMaker>();
 
             ConnectionMultiplexer connection = null;
-            while(connection is null)
+            while (connection is null)
             {
                 try
                 {
@@ -40,23 +36,6 @@ namespace BlazingPizza.DeliveryService
                 }
                 catch(Exception) {}
             }
-
-            services.AddOpenTelemetry((TracerBuilder b) =>
-            {
-                b.AddRequestCollector();
-                b.UseZipkin(o => 
-                {
-                    o.ServiceName = "delivery"; 
-                    o.Endpoint = new Uri("http://zipkin:9411/api/v2/spans");
-                });
-
-                b.AddCollector(t =>
-                {
-                    var collector = new StackExchangeRedisCallsCollector(t);
-                    connection.RegisterProfiler(collector.GetProfilerSessionsFactory());
-                    return collector;
-                });
-            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -68,12 +47,8 @@ namespace BlazingPizza.DeliveryService
 
             app.UseRouting();
 
-            app.UseHttpMetrics();
-
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapMetrics();
-
                 endpoints.MapHealthChecks("/healthz");
                 endpoints.MapGrpcService<DeliveryServiceImpl>();
             });

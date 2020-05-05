@@ -4,13 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OpenTelemetry.Trace.Configuration;
-using Prometheus;
 
 namespace BlazingPizza.MenuService
 {
@@ -28,16 +24,6 @@ namespace BlazingPizza.MenuService
             services.AddGrpc();
             services.AddHealthChecks();
             ConfigureDatabase(services);
-
-            services.AddOpenTelemetry((TracerBuilder b) =>
-            {
-                b.AddRequestCollector();
-                b.UseZipkin(o => 
-                {
-                    o.ServiceName = "menu"; 
-                    o.Endpoint = new Uri("http://zipkin:9411/api/v2/spans");
-                });
-            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -49,11 +35,8 @@ namespace BlazingPizza.MenuService
 
             app.UseRouting();
 
-            app.UseHttpMetrics();
-
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapMetrics();
                 endpoints.MapHealthChecks("/healthz");
                 endpoints.MapGrpcService<MenuServiceImpl>();
             });
