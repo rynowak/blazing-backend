@@ -5,6 +5,12 @@
 #    https://aka.ms/AA7q20u
 #
 name: blazing-backend
+
+extensions:
+- name: zipkin 
+- name: elastic 
+  logPath: "./logs"
+
 ingress:
   - name: ingress
     bindings:

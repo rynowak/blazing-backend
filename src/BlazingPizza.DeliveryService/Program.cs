@@ -27,7 +27,7 @@ namespace BlazingPizza.DeliveryService
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.ConfigureKestrel((context, options) => 
-                    {
+                    {                     
                         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                         {
                             var urls = context.Configuration["urls"];
